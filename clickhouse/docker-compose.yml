@@ -1,0 +1,46 @@
+services:
+  # ClickHouse
+  clickhouse:
+    image: clickhouse/clickhouse-server
+    container_name: clickhouse-server
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-default}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: ${CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT:-0}
+    ports:
+      - "8123:8123" 
+      - "9000:9000" 
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ClickHouse initialization
+  init-clickhouse:
+    image: clickhouse/clickhouse-server
+    container_name: init-clickhouse
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    environment:
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-default}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: ${CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT:-0}
+    volumes:
+      - ./init-db.sh:/init-db.sh
+    entrypoint: ["/bin/bash", "/init-db.sh"]
+    restart: "no"
+    network_mode: "service:clickhouse"
+
+volumes:
+  clickhouse-data:
+    external: true

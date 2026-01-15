@@ -1,0 +1,35 @@
+services:
+  # Kafka Broker
+  kafka:
+    extends:
+      file: ./kafka/docker-compose.yml
+      service: kafka
+
+  init-kafka:
+    extends:
+      file: ./kafka/docker-compose.yml
+      service: init-kafka
+
+  kafka-ui:
+    extends:
+      file: ./kafka/docker-compose.yml
+      service: kafka-ui
+
+  # Clickhouse
+  clickhouse:
+    extends:
+      file: ./clickhouse/docker-compose.yml
+      service: clickhouse
+  init-clickhouse:
+    extends:
+      file: ./clickhouse/docker-compose.yml
+      service: init-clickhouse
+  grafana:
+    extends:
+      file: ./grafana/docker-compose.yml
+      service: grafana
+
+volumes:
+  kafka-data:
+  clickhouse-data:
+  grafana-data:
